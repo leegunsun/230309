@@ -17,7 +17,7 @@ ADD . .
 
 # host pc 의 nginx.conf 를 복사
 #COPY ./blog.conf /etc/nginx/conf.d
-
+RUN npm i
 # 80 포트 오픈
 EXPOSE 3000
 
