@@ -1,5 +1,6 @@
 # nginx 이미지를 사용
-FROM node
+FROM node:latest
+RUN apt-get update && apt-get install -y npm
 
 # work dir
 WORKDIR /app
