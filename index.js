@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use((req, res, next) => {
-  return res.json({ 제발: "성공ㅎ재ㅝ" });
+  return res.json({ 제발: "성공ㅎ재gsdgsd" });
 });
 
 app.listen(PORT, () => {
