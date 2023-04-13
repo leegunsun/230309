@@ -1,6 +1,6 @@
 # nginx 이미지를 사용
 FROM node:latest
-RUN apt-get update && apt-get install -y npm
+
 
 # work dir
 WORKDIR /app
@@ -10,7 +10,7 @@ WORKDIR /app
 #RUN mkdir ./build
 
 # host pc의 현재경로의 build 폴더를 workdir 의 build 폴더로 복사
-ADD . .
+COPY . .
 #./build ./build
 
 # nginx 의 default.conf 를 삭제
@@ -18,7 +18,8 @@ ADD . .
 
 # host pc 의 nginx.conf 를 복사
 #COPY ./blog.conf /etc/nginx/conf.d
-RUN npm i && npm run build
+RUN npm i 
+RUN npm run build
 # 80 포트 오픈
 EXPOSE 3000
 
