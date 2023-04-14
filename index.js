@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use((req, res, next) => {
-  return res.json({ 제발: "성공했다 배포" });
+  return res.json({ 제발: "수정을 했습니다." });
 });
 
 app.listen(PORT, () => {
