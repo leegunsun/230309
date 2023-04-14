@@ -9,7 +9,7 @@ WORKDIR /app
 # work dir 에 build 폴더 생성 : /home/blog/build
 #RUN mkdir ./build
 
-# host pc의 현재경로의 build 폴더를 workdir 의 build 폴더로 복사
+# host pc의 현재경로의 build 폴더를 workdir 의 build 폴더로 복사ㅇㅇ
 COPY . .
 #./build ./build
 
