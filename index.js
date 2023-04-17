@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use((req, res, next) => {
-  return res.json({ 제발: "무야 되는거야?1234567891234567891234" });
+  return res.json({ 제발: "무야 되는거야?12345678912345678912345" });
 });
 
 app.listen(PORT, () => {
