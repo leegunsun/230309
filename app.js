@@ -10,7 +10,7 @@ app.use(morgan("dev"));
 const indexRouter = require("./routes/index");
 
 const PORT = process.env.SERVER_PORT;
-
+//
 app.use(
   cors({
     origin: "*",
