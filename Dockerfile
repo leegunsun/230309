@@ -1,5 +1,11 @@
 # nginx 이미지를 사용
 FROM node:latest
+ENV MYSQL_USERNAME root
+ENV MYSQL_PASSWORD 4321aaaa
+ENV MYSQL_DATABASE newJeans
+ENV MYSQL_HOST express-database.ctg1j1jhkerv.ap-northeast-2.rds.amazonaws.com
+ENV SECRET_KEY %SFDSG%^dsa$D$%@S%567325REW%wfd553^%$HFDGFD&^*^%FDGFD&%^$*$GFDGDF&^$&%$%$^$%GFDGFDGDFVXCUYREKHRSD%*H2DSA355FGDS^$%%$^$$dsadag2%!@
+ENV SERVER_PORT 3000
 
 
 # work dir
