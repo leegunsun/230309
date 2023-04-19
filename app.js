@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use("/", (req, res, next) => {
-  res.send("바뀜12");
+  res.send("바뀜123");
 });
 
 app.use("/api", indexRouter);
