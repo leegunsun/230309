@@ -34,7 +34,7 @@ class CardpostsRepository {
       where: { postIdx: findOnePost.postIdx },
     });
     const PreferUserSelete = await PostLike.findOne({
-      where: { userIdx },
+      where: { userIdx, postIdx },
     });
 
     const renamePost = {

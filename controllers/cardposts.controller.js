@@ -1,4 +1,5 @@
 const Boom = require("boom");
+const slack = require("../app");
 const Joi = require("joi");
 const CardpostsService = require("../services/cardposts.service");
 const CardpostsRepository = require("../repositories/cardposts.repository");
