@@ -11,7 +11,7 @@ class PreferService {
   // 포스트에 투표합니다.
   postPoll = async (userIdx, postIdx, proInputValue, conInputValue) => {
     try {
-      // proInputValue는 포스트에 찬성, conInputValue는 반대d
+      // proInputValue는 포스트에 찬성, conInputValue는 반대ds
 
       if (proInputValue == true) {
         const isPoll = await this.preferRepository.findPollUserCheck(
