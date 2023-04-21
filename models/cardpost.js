@@ -27,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "postIdx",
       });
 
+      this.hasMany(models.CommentLike, {
+        sourceKey: "postIdx",
+        foreignKey: "postIdx",
+      });
+
       this.hasMany(models.ReplyComment, {
         sourceKey: "postIdx",
         foreignKey: "postIdx",
@@ -53,6 +58,10 @@ module.exports = (sequelize, DataTypes) => {
       },
       title: {
         allowNull: false, // NOT NULL
+        type: DataTypes.STRING,
+      },
+      pollType: {
+        allowNull: true, // NULL
         type: DataTypes.STRING,
       },
       desc: {

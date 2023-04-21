@@ -1,4 +1,5 @@
-const { CardPost, Comment, Users } = require('../models');
+const { CardPost, Comment, Users, CommentLike } = require('../models');
+const { Sequelize } = require("sequelize");
 const { parseModelToFlatObject } = require('../helpers/sequelize.helper');
 class CommentRepository extends Comment {
   
@@ -10,11 +11,12 @@ class CommentRepository extends Comment {
    * @param {String} comment
    */
   //댓글 생성
-  createComment = async (postIdx, userIdx, comment) => {
+  createComment = async (postIdx, userIdx, comment, selectedTag) => {
     const writeComment = await Comment.create({
       postIdx,
       userIdx,
       comment,
+      selectedTag
     });
     return writeComment;
   };
@@ -22,17 +24,23 @@ class CommentRepository extends Comment {
   /**
    * @param {UUID} postIdx
    */
-  //댓글 조회
+  //댓글 전체 조회
   getComments = async (postIdx) => {
     const selectComments = await Comment.findAll({
       where: {
         postIdx,
       },
-      attributes: ['commentIdx', 'postIdx', 'comment', 'createdAt', 'updatedAt'],
+      attributes: ['commentIdx', 'postIdx', 'comment', 'selectedTag', 'createdAt', 'updatedAt'],
       include: [
         {
           model: Users,
           attributes: ['nickname'],
+        },
+        {
+          model: CommentLike,
+          attributes: [
+            [Sequelize.fn('COUNT', Sequelize.col('commentLikeIdx')),'likesCount']
+          ]
         },
       ],
       group: ['Comment.commentIdx'],
@@ -76,7 +84,7 @@ class CommentRepository extends Comment {
   //게시글 검색
   findPost = async (postIdx) => {
     const searchPost = await CardPost.findOne({
-      where: { postIdx } 
+      where: { postIdx }
     });
     return searchPost;
   };
@@ -98,7 +106,7 @@ class CommentRepository extends Comment {
    * @param {UUID} commentIdx
    */
   //권한 확인
-  findeAuth = async (commentIdx, userIdx) => {
+  findAuth = async (commentIdx, userIdx) => {
     const chkAuth = await Comment.findOne({
       where: { commentIdx, userIdx },
     });

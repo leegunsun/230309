@@ -1,8 +1,16 @@
-const { CardPost, Users, Comment, Prefer, PostLike } = require("../models");
-const { Op } = require("sequelize");
+const { CardPost, Users, Comment, PostLike, Prefer } = require("../models");
+const { parseModelToFlatObject } = require("../helpers/sequelize.helper");
+const { Op, Sequelize } = require("sequelize");
+
 const moment = require("moment");
 
+const PreferRepository = require("./prefer.repository");
+
 class CardpostsRepository {
+  constructor() {
+    this.preferRepository = new PreferRepository();
+  }
+
   //로그인 한 유저라면 IsLike의 상태를 볼 수 있습니다.
   findOneIogInPost = async (userIdx, postIdx) => {
     const findOnePost = await CardPost.findOne({
@@ -10,15 +18,10 @@ class CardpostsRepository {
       attibutes: [
         "postIdx",
         "userIdx",
-        "maincategory",
-        "category",
         "title",
         "desc",
         "createdAt",
         "viewCount",
-        "imgUrl",
-        "tag",
-        "pollTitle",
       ],
     });
     // const addUserInfo = await UserInfo.findOne({
@@ -41,8 +44,6 @@ class CardpostsRepository {
       postIdx: findOnePost.postIdx,
       title: findOnePost.title,
       // userLevel: addUserInfo.level, 추후에 해제
-      maincategory: findOnePost.maincategory,
-      category: findOnePost.category,
       desc: findOnePost.desc,
       createdAt: findOnePost.createdAt,
       nickname: addUser.nickname,
@@ -50,25 +51,17 @@ class CardpostsRepository {
       postViewCount: findOnePost.viewCount,
       commentCount: postCommentCount.length || 0,
       likesCount: PreferlikeCounts || 0,
-      pollTitle: findOnePost.pollTitle || "",
-      imgUrl: !findOnePost.imgUrl
-        ? ""
-        : findOnePost.imgUrl.replace(/\s/g, "").substring(0, 4) == "http"
-        ? findOnePost.imgUrl.replace(/\s/g, "").split(",")
-        : [
-            findOnePost.imgUrl
-              .replace(/\s/g, "")
-              .split(",")
-              .slice(0, 2)
-              .trim()
-              .join(","),
-          ],
-      tag: !findOnePost.tag ? "" : findOnePost.tag.trim().split(","),
     };
 
     return renamePost;
   };
 
+  /**
+   * email을 대조해서 유저를 찾습니다.
+   *
+   * @param {string} email
+   * @returns
+   */
   findOneUser = async (email) => {
     const findOneUser = await Users.findOne({ where: { email } });
 
@@ -89,19 +82,15 @@ class CardpostsRepository {
       category
     );
 
-    const renameSplitCards = await this.renameSplitCards(findCardPosts);
-
-    return renameSplitCards;
+    return findCardPosts;
   };
 
-  // 특정 로직을 세우고 가장 인기있는 게시물 3개를 가져옵니다.
+  // 특정 로직을 세우고 7일 안에 작성된 가장 인기있는 게시물 5개를 가져옵니다.
   findHotCards = async () => {
-    const findCardPosts = await this.cardfindAll();
-
-    const renameSplitCards = await this.renameSplitCards(findCardPosts);
+    const hotCardfindAll = await this.hotCardfindAll();
 
     const postsWithIndex = await Promise.all(
-      renameSplitCards.map(async (post) => {
+      hotCardfindAll.map(async (post) => {
         const index = await calculatePostIndex(post.postIdx);
         return { post, index };
       })
@@ -116,6 +105,42 @@ class CardpostsRepository {
     return top3PostObjects;
   };
 
+  // 지정한 카드의 contents를 불러들입니다.
+  findOnePostContents = async (postIdx) => {
+    const findPost = await CardPost.findOne({
+      where: { postIdx: postIdx },
+      attibutes: ["postIdx", "imgUrl", "tag", "pollTitle", "pollType"],
+    });
+
+    const findPostRename = {
+      pollTitle: findPost.pollTitle,
+      pollType: findPost.pollType,
+      imgUrl: !findPost.imgUrl
+        ? ""
+        : findPost.imgUrl.replace(/\s/g, "").substring(0, 4) == "http"
+        ? findPost.imgUrl.replace(/\s/g, "").split(",")
+        : [
+            findPost.imgUrl
+              .replace(/\s/g, "")
+              .split(",")
+              .slice(0, 2)
+              .trim()
+              .join(","),
+          ],
+      tag: !findPost.tag ? "" : findPost.tag.trim().split(","),
+    };
+
+    return findPostRename;
+  };
+
+  // 지정한 카드의 category 정보를 불러들입니다.
+  findOnePostCategorys = async (postIdx) => {
+    return await CardPost.findOne({
+      where: { postIdx: postIdx },
+      attibutes: ["maincategory", "category"],
+    });
+  };
+
   // postIdx로 지정한 카드를 불러들입니다. 비로그인 유저이기 떄문에 IsLike는 false.
   findOnePost = async (postIdx) => {
     const findOnePost = await CardPost.findOne({
@@ -123,15 +148,10 @@ class CardpostsRepository {
       attibutes: [
         "postIdx",
         "userIdx",
-        "maincategory",
-        "category",
         "title",
         "desc",
         "createdAt",
         "viewCount",
-        "imgUrl",
-        "tag",
-        "pollTitle",
       ],
     });
     // const addUserInfo = await UserInfo.findOne({
@@ -151,8 +171,6 @@ class CardpostsRepository {
       postIdx: findOnePost.postIdx,
       title: findOnePost.title,
       // userLevel: addUserInfo.level, 추후에 해제
-      maincategory: findOnePost.maincategory,
-      category: findOnePost.category,
       desc: findOnePost.desc,
       createdAt: findOnePost.createdAt,
       nickname: addUser.nickname,
@@ -160,20 +178,6 @@ class CardpostsRepository {
       postViewCount: findOnePost.viewCount,
       commentCount: postCommentCount.length || 0,
       likesCount: PreferlikeCounts || 0,
-      pollTitle: findOnePost.pollTitle || "",
-      imgUrl: !findOnePost.imgUrl
-        ? ""
-        : findOnePost.imgUrl.replace(/\s/g, "").substring(0, 4) == "http"
-        ? findOnePost.imgUrl.replace(/\s/g, "").split(",")
-        : [
-            findOnePost.imgUrl
-              .replace(/\s/g, "")
-              .split(",")
-              .slice(0, 2)
-              .trim()
-              .join(","),
-          ],
-      tag: !findOnePost.tag ? "" : findOnePost.tag.trim().split(","),
     };
 
     return renamePost;
@@ -188,7 +192,8 @@ class CardpostsRepository {
     tag,
     imgUrl,
     userIdx,
-    pollTitle
+    pollTitle,
+    pollType
   ) => {
     await CardPost.create({
       title,
@@ -200,6 +205,7 @@ class CardpostsRepository {
       userIdx,
       viewCount: 0,
       pollTitle,
+      pollType: pollType || "",
     });
 
     return;
@@ -225,16 +231,6 @@ class CardpostsRepository {
     return;
   };
 
-  // title, category, desc값이 비워져있다면 포스트 수정하기 전의 값을 반환합니다.
-  nullCheck = async (postIdx, title, maincategory, category, desc) => {
-    const checkTitle = nullFill(title, CardPost, postIdx);
-    const checkCategory = nullFill(category, CardPost, postIdx);
-    const checkMainCategory = nullFill(maincategory, CardPost, postIdx);
-    const checkDesc = nullFill(desc, CardPost, postIdx);
-
-    return { checkTitle, checkMainCategory, checkCategory, checkDesc };
-  };
-
   // 포스트를 삭제합니다.
   deletePost = async (userIdx, postIdx) => {
     await CardPost.destroy({
@@ -256,11 +252,72 @@ class CardpostsRepository {
     // 3. 메인카테고리 = 유머, 진지 AND 카테고리 = 전체
     // 4. 메인카테고리 = 유머, 진지 AND 카테고리 = 선택카테고리
 
-    return await CardPost.findAll({
+    const CardfindAll = await CardPost.findAll({
       where: {
         [Op.and]: [
           !maincategory ? {} : { maincategory },
           !category ? {} : { category },
+        ],
+      },
+      order: [["createdAt", "DESC"]], // createdAt 역순으로 정렬
+      offset: splitNumber * (splitPageNumber - 1), // * (page - 1) 페이지당 게시글 수만큼 건너뛰기
+      limit: splitNumber, // 페이지당 게시글 수만큼 가져오기
+      subQuery: false,
+      attributes: [
+        "postIdx",
+        "maincategory",
+        "category",
+        "title",
+        "desc",
+        "createdAt",
+        [Sequelize.col("viewCount"), "postViewCount"],
+        "imgUrl",
+      ],
+      include: [
+        { model: Users, attributes: ["nickname"] },
+        {
+          model: Comment,
+          attributes: [
+            [
+              Sequelize.fn("COUNT", Sequelize.col("commentIdx")),
+              "commentCount",
+            ],
+          ],
+        },
+        {
+          model: PostLike,
+          attributes: [
+            [Sequelize.fn("COUNT", Sequelize.col("postLikeIdx")), "likesCount"],
+          ],
+        },
+      ],
+      group: ["CardPost.postIdx"],
+      raw: true,
+    });
+    const findCardPosts = CardfindAll.map(parseModelToFlatObject);
+
+    return findCardPosts;
+  };
+
+  // 7일 안에 작성된 게시글만 조회합니다.
+  hotCardfindAll = async (
+    maincategory,
+    splitNumber,
+    splitPageNumber,
+    category
+  ) => {
+    // 1. 메인카테고리 = 전체 AND 카테고리 = 전체.
+    // 2. 메인카테고리 = 전체 AND 카테고리 = 선택카테고리
+    // 3. 메인카테고리 = 유머, 진지 AND 카테고리 = 전체
+    // 4. 메인카테고리 = 유머, 진지 AND 카테고리 = 선택카테고리
+
+    const sevenDaysAgo = moment().subtract(7, "days");
+    const hotCardfindAll = await CardPost.findAll({
+      where: {
+        [Op.and]: [
+          !maincategory ? {} : { maincategory },
+          !category ? {} : { category },
+          { createdAt: { [Op.gte]: sevenDaysAgo } },
         ],
       },
       order: [["createdAt", "DESC"]], // createdAt 역순으로 정렬
@@ -271,47 +328,41 @@ class CardpostsRepository {
       limit: splitNumber ? splitNumber : null, // 페이지당 게시글 수만큼 가져오기
       attributes: [
         "postIdx",
-        "userIdx",
         "maincategory",
         "category",
         "title",
         "desc",
         "createdAt",
-        "viewCount",
-        "imgUrl",
+        [Sequelize.col("viewCount"), "postViewCount"],
+        [
+          Sequelize.literal("CASE WHEN imgUrl = '' THEN false ELSE true END"),
+          "isImg",
+        ],
       ],
+      include: [
+        { model: Users, attributes: ["nickname"] },
+        {
+          model: Comment,
+          attributes: [
+            [
+              Sequelize.fn("COUNT", Sequelize.col("commentIdx")),
+              "commentCount",
+            ],
+          ],
+        },
+        {
+          model: PostLike,
+          attributes: [
+            [Sequelize.fn("COUNT", Sequelize.col("postLikeIdx")), "likesCount"],
+          ],
+        },
+      ],
+      group: ["CardPost.postIdx"],
+      raw: true,
     });
-  };
+    const findCardPosts = hotCardfindAll.map(parseModelToFlatObject);
 
-  // 다른 테이블의 프로퍼티를 가져오고 더합니다. 프로퍼티 이름을 바꿔줍니다.
-  renameSplitCards = async (findCardPosts) => {
-    return await Promise.all(
-      findCardPosts.map(async (ele) => {
-        // const addUserInfo = await UserInfo.findOne({
-        //   where: { userIdx: ele.userIdx },
-        // });
-        const addUser = await Users.findOne({
-          where: { userIdx: ele.userIdx },
-        });
-        const postCommentCount = await Comment.findAll({
-          where: { postIdx: ele.postIdx },
-        });
-
-        return {
-          postIdx: ele.postIdx,
-          maincategory: ele.maincategory,
-          category: ele.category,
-          // userLevel: addUserInfo.level, 추후에 해제
-          title: ele.title,
-          desc: ele.desc,
-          createdAt: ele.createdAt,
-          nickname: addUser.nickname,
-          postViewCount: ele.viewCount,
-          commentCount: postCommentCount.length || 0,
-          isImg: ele.imgUrl ? true : false,
-        };
-      })
-    );
+    return findCardPosts;
   };
 }
 
@@ -323,33 +374,32 @@ function getRandomIntInclusive(min, max) {
 
 // index = 조회수 + (좋아요 * 3~5) + (댓글 수 * 5~10)
 async function calculatePostIndex(postId) {
-  const post = await CardPost.findByPk(postId);
-  const daysElapsed = moment().diff(post.createdAt, "days");
+  const post = await CardPost.findOne({
+    where: { postIdx: postId },
+    include: [
+      {
+        model: PostLike,
+        attributes: [
+          [Sequelize.fn("COUNT", Sequelize.col("postLikeIdx")), "likesCount"],
+        ],
+      },
+      {
+        model: Comment,
+        attributes: [
+          [Sequelize.fn("COUNT", Sequelize.col("commentIdx")), "commentCount"],
+        ],
+      },
+    ],
+    group: ["CardPost.postIdx"],
+    raw: true,
+  });
+
   const index =
-    (post.viewCount +
-      ((await PostLike.count({
-        where: { postIdx: post.postIdx },
-      })) || 0) *
-        getRandomIntInclusive(3, 5) +
-      ((await Comment.count({ where: { postIdx: post.postIdx } })) || 0) *
-        getRandomIntInclusive(5, 10)) /
-    Math.pow(daysElapsed, 0.8);
+    post.viewCount +
+    post["PostLikes.likesCount"] * getRandomIntInclusive(3, 5) +
+    post["Comments.commentCount"] * getRandomIntInclusive(5, 10);
 
   return index;
-}
-
-// Model table을 설정하고 postIdx에 맞는 value 프로퍼티를 찾습니다.
-// 인자 value가 값이 없다면 설정한 table에서 value값을 찾아서 돌려줍니다.
-async function nullFill(value, table, postIdx) {
-  if (!value) {
-    const fill = await table.findOne({
-      where: { postIdx },
-      attibutes: [`${value}`],
-    });
-    return fill.value;
-  } else {
-    return value;
-  }
 }
 
 module.exports = CardpostsRepository;

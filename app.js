@@ -1,24 +1,20 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
-
-const { App } = require("@slack/bolt");
 const morgan = require("morgan");
 const cors = require("cors");
-const cookieParser = require("cookie-parser");
-
+const { App } = require("@slack/bolt");
 const logger = require("./middlewares/logger.js");
-
+const cookieParser = require("cookie-parser");
 app.use(morgan("dev"));
 
 const indexRouter = require("./routes/index");
 
 const slack = new App({
-  token: "xoxb-5137346135345-5124606195571-ZMIUvWfqLhWLa1ykQgAyT37B",
-  signingSecret: "40e15569d862bd4b9b54a4bea2a807fb",
+  token: process.env.SLACK_TOKEN,
+  signingSecret: process.env.SLACK_SIGNINGSECRET,
   socketMode: true,
-  appToken:
-    "xapp-1-A053KP1NNG5-5122736143893-689e06402a59d7e71cbae172f717c693f88368070bfe0fcc4e13498c62a8386b",
+  appToken: process.env.SLACK_APPTOKEN,
 });
 
 const PORT = process.env.SERVER_PORT;
@@ -28,7 +24,8 @@ app.use(
     origin: "*",
     credentials: true,
     optionsSuccessStatus: 200,
-    exposedHeaders: ["Authorization"],
+    exposedHeaders: ["Authorization","refreshtoken"],
+    // exposedHeaders: [],
   })
 );
 
@@ -36,26 +33,23 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use("/", (req, res, next) => {
-  res.send("바뀜1234");
-});
-
 app.use("/api", indexRouter);
 
 app.use((err, req, res, next) => {
   // Slack에 에러 메시지를 보냅니다.
   slack.client.chat.postMessage({
-    channel: "C053R5WK4G4",
+    channel: process.env.SLACK_CHANNEL,
     text: `An error occurred : ${err.message}`,
   });
-
+  logger.error(err.stack);
   return res.status(err.output.payload.statusCode || 500).json({
     errorMessage: err.output.payload.message || "서버 에러가 발생했습니다.",
   });
 });
 
+// 슬렉 서버
 (async () => {
-  await slack.start(process.env.PORT || 3000);
+  await slack.start(process.env.PORT || 3001);
   console.log("⚡️ Bolt app is running!");
 })();
 

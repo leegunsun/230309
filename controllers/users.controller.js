@@ -38,13 +38,23 @@ class UserController {
     const authToken = await this.userService.getKakaoToken(code);
     const userData = await this.userService.getKakaoUser(authToken);
     const email = userData.email;
-    // console.log(email)
-    // const {email, nickname} = userData
+    const nickname = userData.nickname
     const { access_token, refresh_token } =
       await this.userService.generateToken(email);
+    
     res.set("Authorization", `Bearer ${access_token}`);
     res.set("refreshtoken", refresh_token);
-    // res.send(JSON.stringify(userData)); // 프론트엔드에서 확인하려고
+    console.log(email)
+    console.log(nickname)
+    const selectEmail = await this.userService.findEmail(email);
+    console.log(selectEmail)
+    if (!selectEmail){
+      await this.userService.snsUserSignup(
+        email,
+        nickname
+      );
+    }
+
     return res
       .status(201)
       .json({ message: "로그인에 성공했습니다", nickname: userData.nickname });
@@ -101,6 +111,7 @@ class UserController {
       next(error);
     }
   };
+
   refresh = async (req, res) => {
     // access token과 refresh token의 존재 유무를 체크합니다.
     if (req.headers.authorization && req.headers.refreshtoken) {
