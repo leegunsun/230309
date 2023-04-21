@@ -1,5 +1,6 @@
 const { CardPost, Users, Comment, PostLike, Prefer } = require("../models");
 const { parseModelToFlatObject } = require("../helpers/sequelize.helper");
+const momenttimezone = require("moment-timezone");
 const { Op, Sequelize } = require("sequelize");
 
 const moment = require("moment");
@@ -332,7 +333,12 @@ class CardpostsRepository {
         "category",
         "title",
         "desc",
-        "createdAt",
+        [
+          Sequelize.literal(
+            `DATE_FORMAT(CONVERT_TZ(CardPost.createdAt, '+00:00', '+09:00'), '%Y-%m-%d %H:%i:%s')`
+          ),
+          "createdAt",
+        ],
         [Sequelize.col("viewCount"), "postViewCount"],
         [
           Sequelize.literal("CASE WHEN imgUrl = '' THEN false ELSE true END"),
@@ -360,6 +366,7 @@ class CardpostsRepository {
       group: ["CardPost.postIdx"],
       raw: true,
     });
+
     const findCardPosts = hotCardfindAll.map(parseModelToFlatObject);
 
     return findCardPosts;
