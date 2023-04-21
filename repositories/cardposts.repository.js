@@ -134,7 +134,7 @@ class CardpostsRepository {
     return findPostRename;
   };
 
-  // 지정한 카드의 category 정보를 불러들입니다.
+  // 지정한 카드의 category 정보를 불러들입니다...
   findOnePostCategorys = async (postIdx) => {
     return await CardPost.findOne({
       where: { postIdx: postIdx },
