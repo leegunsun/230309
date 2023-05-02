@@ -1,5 +1,5 @@
 # nginx 이미지를 사용
-FROM node:latest
+FROM node:alpine
 
 ARG MYSQL_USERNAME
 ARG MYSQL_PASSWORD
