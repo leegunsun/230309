@@ -16,7 +16,7 @@ COPY ["src/", "./src/"]
 # RUN npm run test
 
 # 프로젝트 빌드
-RUN npm run build
+RUN npm run build --verbose
 
 # Step 2 : Run
 FROM node:alpine
