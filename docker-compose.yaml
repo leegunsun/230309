@@ -1,4 +1,4 @@
-nestapp:
+nest:
   build: "."
   container_name: "nest"
   working_dir: "/app"
