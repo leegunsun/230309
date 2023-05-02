@@ -15,7 +15,7 @@ COPY ["src/", "./src/"]
 # 테스트 실행
 # RUN npm run test
 
-# 프로젝트 빌드
+# 프로젝트 빌드.
 RUN npm run build --verbose
 
 # Step 2 : Run
