@@ -22,7 +22,7 @@ RUN npm run build --verbose
 FROM node:alpine
 # Work Directory 설정
 WORKDIR /app
-# Stemp 1의 builder에서 build된 프로젝트를 복사
+# Stemp 1의 builder에서 build된 프로젝트를 복사.
 COPY --from=builder /app ./
 # 3000번 포트 열음
 EXPOSE 3000
