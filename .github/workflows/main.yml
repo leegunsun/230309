@@ -58,5 +58,5 @@ jobs:
         run: |
 
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/realjeans:realjeans
-
-          docker run -i -t --env-file ./sample.env -d -p 3000:3000 --name realjeans ${{ secrets.DOCKERHUB_USERNAME }}/realjeans:realjeans
+          echo $PWD
+          docker run -i -t --env-file ../sample.env -d -p 3000:3000 --name realjeans ${{ secrets.DOCKERHUB_USERNAME }}/realjeans:realjeans
