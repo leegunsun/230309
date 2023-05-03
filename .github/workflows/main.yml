@@ -57,7 +57,7 @@ jobs:
       - name: Docker run
         run: |
           echo testesetetsetsetsetsetsetset
-          docker stop newjeans && docker rm newjeans && docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/realjeans:realjeans
+
 
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/realjeans:realjeans
 
