@@ -40,12 +40,12 @@ jobs:
           file: ./Dockerfile # 빌드할 Dockerfile이 있는 디렉토리
           platforms: linux/amd64 # 빌드할 때 사용할 환경.
           push: true # Dockerhub 푸쉬 여부
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-web # docker 이미지 이름
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/realjeans:realjeans # docker 이미지 이름
 
   # 배포
-  deploy:
+  deploy_instance1:
     needs: build # build 후에 실행되도록 정의
-    name: Deploy
+    name: Deploy to Instance 1
     runs-on: [self-hosted, label-go] # AWS ./configure에서 사용할 label명
     steps:
       - name: Login to ghcr
@@ -56,7 +56,8 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Docker run
         run: |
-
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/realjeans:realjeans
-
-          docker run -i -t --env-file /home/ubuntu/sample.env -d -p 3000:3000 --name realjeans ${{ secrets.DOCKERHUB_USERNAME }}/realjeans:realjeans
+        echo "Workflow name: ${{ env.GITHUB_WORKFLOW }}"
+        echo "Repository: ${{ env.GITHUB_REPOSITORY }}"
+        echo "Actor: ${{ env.GITHUB_ACTOR }}"
+        echo "Commit SHA: ${{ env.GITHUB_SHA }}"
+        echo "Branch or tag: ${{ env.GITHUB_REF }}"
