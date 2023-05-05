@@ -56,8 +56,8 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Docker run
         run: |
-          echo "Workflow name: ${{ env.GITHUB_WORKFLOW }}"
-          echo "Repository: ${{ env.GITHUB_REPOSITORY }}"
-          echo "Actor: ${{ env.GITHUB_ACTOR }}"
-          echo "Commit SHA: ${{ env.GITHUB_SHA }}"
-          echo "Branch or tag: ${{ env.GITHUB_REF }}"
+          echo "Workflow name: ${{ github.workflow }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Branch or tag: ${{ github.ref }}"
