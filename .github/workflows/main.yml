@@ -61,3 +61,4 @@ jobs:
           echo "Actor: ${{ github.actor }}"
           echo "Commit SHA: ${{ github.sha }}"
           echo "Branch or tag: ${{ github.ref }}"
+          echo "test github_run_number: ${{github_run_number}}"
