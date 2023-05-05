@@ -62,6 +62,7 @@ jobs:
           echo "Commit SHA: ${{ github.sha }}"
           echo "Branch or tag: ${{ github.ref }}"
           echo "test github_run_number: ${{ github.run_number }}"
-          PREVIOUS_IMAGE_TAG=$(docker images | grep 'gunsun/realjeans' | awk '{print $2}' | sort -V | grep -v $IMAGE_TAG | tail -n 1)
+          docker_images_output=$(docker images | grep 'gunsun/realjeans')
+          previous_image_tag=$(echo "$docker_images_output" | awk '{print $2}' | sort -V | grep -v $IMAGE_TAG | tail -n 1)
           echo "test github_run_number: ${{ github.run_number }}"
-          echo  $PREVIOUS_IMAGE_TAG
+          echo  $previous_image_tag
